@@ -32,10 +32,26 @@ const readShortTerm = tool(
   }
 );
 
+import { createClient } from '@supabase/supabase-js';
+
 const readLongTerm = tool(
   async (input, config) => {
-    // Return explicitly stored facts for the user
-    return JSON.stringify([{ fact: 'user wants short answers', reason: 'user_preference_stated' }]);
+    const authContext = config?.configurable?.auth_context;
+    if (!authContext) throw new Error("Unauthorized: Missing auth context");
+
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${authContext.token}` } }
+    });
+
+    const { data, error } = await supabase
+      .from('memory_entries')
+      .select('fact, reason, created_at')
+      .eq('workspace_id', input.workspace_id)
+      .eq('user_id', input.user_id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return JSON.stringify(data || []);
   },
   {
     name: 'read_long_term',
@@ -46,9 +62,23 @@ const readLongTerm = tool(
 
 const writeMemory = tool(
   async (input, config) => {
-    // In production, this writes to memory_entries table with the specified explicit reason
-    console.log(`Writing to long term memory: ${input.fact} [Reason: ${input.reason}]`);
-    return `Memory successfully saved.`;
+    const authContext = config?.configurable?.auth_context;
+    if (!authContext) throw new Error("Unauthorized: Missing auth context");
+
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${authContext.token}` } }
+    });
+
+    const { error } = await supabase.from('memory_entries').insert({
+      workspace_id: input.workspace_id,
+      user_id: input.user_id,
+      fact: input.fact,
+      reason: input.reason,
+      source_agent: 'memory_agent' // FR-MEM-3 required audit logging
+    });
+
+    if (error) throw error;
+    return `Memory successfully saved to database.`;
   },
   {
     name: 'write_memory',
