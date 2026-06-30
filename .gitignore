@@ -51,3 +51,6 @@ llm_context/
 test_docs
 
 .swc
+
+# documents
+docs/
