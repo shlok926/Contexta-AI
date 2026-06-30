@@ -70,7 +70,7 @@ CREATE POLICY workspace_isolation_update_agent_runs ON agent_runs
 CREATE POLICY workspace_isolation_select_agent_run_steps ON agent_run_steps
   FOR SELECT
   USING (
-    run_id IN (
+    agent_run_id IN (
       SELECT r.id FROM agent_runs r
       WHERE r.workspace_id IN (
         SELECT workspace_id FROM workspace_members
@@ -82,7 +82,7 @@ CREATE POLICY workspace_isolation_select_agent_run_steps ON agent_run_steps
 CREATE POLICY workspace_isolation_insert_agent_run_steps ON agent_run_steps
   FOR INSERT
   WITH CHECK (
-    run_id IN (
+    agent_run_id IN (
       SELECT r.id FROM agent_runs r
       WHERE r.workspace_id IN (
         SELECT workspace_id FROM workspace_members
@@ -96,7 +96,7 @@ CREATE POLICY workspace_isolation_insert_agent_run_steps ON agent_run_steps
 CREATE POLICY workspace_isolation_select_citations ON citations
   FOR SELECT
   USING (
-    run_id IN (
+    agent_run_id IN (
       SELECT r.id FROM agent_runs r
       WHERE r.workspace_id IN (
         SELECT workspace_id FROM workspace_members
@@ -108,7 +108,7 @@ CREATE POLICY workspace_isolation_select_citations ON citations
 CREATE POLICY workspace_isolation_insert_citations ON citations
   FOR INSERT
   WITH CHECK (
-    run_id IN (
+    agent_run_id IN (
       SELECT r.id FROM agent_runs r
       WHERE r.workspace_id IN (
         SELECT workspace_id FROM workspace_members
