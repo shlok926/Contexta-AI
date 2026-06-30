@@ -18,6 +18,9 @@ app.use('/v1/health', healthRouter);
 app.use('/v1/auth', authRouter);
 app.use('/v1/workspaces/:workspace_id/threads/:thread_id/runs', runsRouter);
 
+import memoryRouter from './routes/memory.js';
+app.use('/v1/workspaces/:workspace_id/memory', memoryRouter);
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

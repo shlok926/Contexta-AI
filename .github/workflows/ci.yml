@@ -53,3 +53,9 @@ jobs:
         run: yarn eval
         env:
           NODE_ENV: test
+
+      # Phase 2 Red Team Hard Gate
+      - name: Run Red-Team Adversarial Eval Harness
+        run: yarn eval:redteam
+        env:
+          NODE_ENV: test

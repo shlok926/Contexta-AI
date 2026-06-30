@@ -59,8 +59,13 @@ async function directAnswer(state: typeof AgentStateAnnotation.State) {
   return { final_answer: "Direct conversational answer." };
 }
 
+import { memoryAgent } from './memory-agent';
+
+// ... (other imports stay same)
+
 async function persistMemory(state: typeof AgentStateAnnotation.State) {
-  // Stub for now (Phase 2)
+  // Call the Memory Agent to persist long term and short term memory
+  const result = await memoryAgent.execute(state);
   return {};
 }
 

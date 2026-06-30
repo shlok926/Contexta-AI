@@ -16,7 +16,8 @@
         "lint:fix": "yarn run turbo:command lint:fix",
         "format": "yarn run turbo:command format",
         "format:check": "yarn run turbo:command format:check",
-        "eval": "ts-node tests/eval/run_eval.ts"
+        "eval": "ts-node tests/eval/run_eval.ts",
+        "eval:redteam": "ts-node tests/eval/run_red_team.ts"
     },
     "devDependencies": {
         "turbo": "latest"
