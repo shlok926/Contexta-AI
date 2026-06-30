@@ -77,7 +77,10 @@ const writeMemory = tool(
       source_agent: 'memory_agent' // FR-MEM-3 required audit logging
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error(`[MemoryAgent] Failed to persist memory to database: ${error.message}`);
+      return `Failed to save memory to database due to an internal error.`; // Fallback gracefully, doesn't throw
+    }
     return `Memory successfully saved to database.`;
   },
   {
