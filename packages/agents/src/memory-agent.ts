@@ -38,6 +38,12 @@ const readLongTerm = tool(
   async (input, config) => {
     const authContext = config?.configurable?.auth_context;
     if (!authContext) throw new Error("Unauthorized: Missing auth context");
+    
+    // LAYER 1 RBAC VALIDATION (Defense-in-depth)
+    const allowedWorkspaces = authContext.allowed_workspaces || [];
+    if (!allowedWorkspaces.includes(input.workspace_id)) {
+      throw new Error(`Unauthorized: Tool execution denied for workspace ${input.workspace_id}. Layer 1 RBAC rejected.`);
+    }
 
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
       global: { headers: { Authorization: `Bearer ${authContext.token}` } }
@@ -64,6 +70,12 @@ const writeMemory = tool(
   async (input, config) => {
     const authContext = config?.configurable?.auth_context;
     if (!authContext) throw new Error("Unauthorized: Missing auth context");
+    
+    // LAYER 1 RBAC VALIDATION (Defense-in-depth)
+    const allowedWorkspaces = authContext.allowed_workspaces || [];
+    if (!allowedWorkspaces.includes(input.workspace_id)) {
+      throw new Error(`Unauthorized: Tool execution denied for workspace ${input.workspace_id}. Layer 1 RBAC rejected.`);
+    }
 
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
       global: { headers: { Authorization: `Bearer ${authContext.token}` } }
