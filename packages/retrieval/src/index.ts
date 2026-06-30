@@ -10,18 +10,29 @@ import {
 
 export async function makeSupabaseRetriever(
   configuration: typeof BaseConfigurationAnnotation.State,
+  authContext?: any
 ): Promise<VectorStoreRetriever> {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
     throw new Error(
-      'SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables are not defined',
+      'SUPABASE_URL or SUPABASE_ANON_KEY environment variables are not defined',
     );
   }
+  
+  if (!authContext?.token) {
+    throw new Error('Unauthorized: Missing auth context token for RLS retrieval');
+  }
+
   const embeddings = new OpenAIEmbeddings({
     model: 'text-embedding-3-small',
   });
+  
+  // Use RLS-scoped client instead of service role
   const supabaseClient = createClient(
     process.env.SUPABASE_URL ?? '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+    process.env.SUPABASE_ANON_KEY ?? '',
+    {
+      global: { headers: { Authorization: `Bearer ${authContext.token}` } }
+    }
   );
   const vectorStore = new SupabaseVectorStore(embeddings, {
     client: supabaseClient,
@@ -38,9 +49,11 @@ export async function makeRetriever(
   config: RunnableConfig,
 ): Promise<VectorStoreRetriever> {
   const configuration = ensureBaseConfiguration(config);
+  const authContext = config.configurable?.auth_context;
+  
   switch (configuration.retrieverProvider) {
     case 'supabase':
-      return makeSupabaseRetriever(configuration);
+      return makeSupabaseRetriever(configuration, authContext);
     default:
       throw new Error(
         `Unsupported retriever provider: ${configuration.retrieverProvider}`,
