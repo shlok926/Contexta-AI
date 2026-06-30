@@ -1,13 +1,29 @@
 import { z } from 'zod';
 import { tool } from '@langchain/core/tools';
 import { BaseAgent } from './base-agent';
+import { applyFifoEviction, ConversationTurn } from './memory-utils';
 
 // Mock implementations for Supabase interactions
 
 const readShortTerm = tool(
   async (input, config) => {
-    // Return recent conversation context, assuming FIFO eviction happens before calling this
-    return JSON.stringify([{ role: 'user', content: 'previous question' }]);
+    // In production, fetch the raw turns from the database for the given thread_id
+    const rawTurns: ConversationTurn[] = [
+      { role: 'system', content: 'You are Contexta.' },
+      { role: 'user', content: 'Turn 1' },
+      { role: 'assistant', content: 'Answer 1' },
+      { role: 'user', content: 'Turn 2' },
+      { role: 'assistant', content: 'Answer 2' },
+      { role: 'user', content: 'Turn 3' },
+      { role: 'assistant', content: 'Answer 3' },
+      { role: 'user', content: 'Turn 4' },
+      { role: 'assistant', content: 'Answer 4' }
+    ];
+
+    // Apply strict FIFO eviction (retaining system pins)
+    const evictedTurns = applyFifoEviction(rawTurns);
+    
+    return JSON.stringify(evictedTurns);
   },
   {
     name: 'read_short_term',
