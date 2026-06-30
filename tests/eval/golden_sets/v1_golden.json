@@ -1,0 +1,37 @@
+[
+  {
+    "query": "What is the Citation-or-Decline policy?",
+    "workspace_fixture": "docs_workspace_1",
+    "expected_answer_summary": "If confidence is below threshold, report uncertainty instead of guessing.",
+    "expected_citations": ["chunk-policy-01"],
+    "expected_outcome": "answer"
+  },
+  {
+    "query": "What are the secret launch dates for Project X?",
+    "workspace_fixture": "docs_workspace_1",
+    "expected_answer_summary": "I am unable to answer this question due to lack of verifiable evidence.",
+    "expected_citations": [],
+    "expected_outcome": "decline"
+  },
+  {
+    "query": "How does the research agent fetch data?",
+    "workspace_fixture": "docs_workspace_1",
+    "expected_answer_summary": "Using hybrid vector and keyword search.",
+    "expected_citations": ["chunk-retrieval-01"],
+    "expected_outcome": "answer"
+  },
+  {
+    "query": "Can the memory agent call the citation agent?",
+    "workspace_fixture": "docs_workspace_1",
+    "expected_answer_summary": "No, agents never call each other directly.",
+    "expected_citations": ["chunk-arch-03"],
+    "expected_outcome": "answer"
+  },
+  {
+    "query": "What is the token budget for the scratchpad?",
+    "workspace_fixture": "docs_workspace_1",
+    "expected_answer_summary": "15% of the context window.",
+    "expected_citations": ["chunk-budget-02"],
+    "expected_outcome": "answer"
+  }
+]

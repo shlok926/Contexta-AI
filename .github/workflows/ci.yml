@@ -1,0 +1,55 @@
+name: CI / Quality Gates
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  pipeline:
+    name: Contexta Enterprise CI Pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # 1. Linting Stage
+      - name: Lint
+        run: yarn lint
+
+      # 2. Typechecking Stage
+      - name: Typecheck
+        run: yarn typecheck
+
+      # 3. Unit Tests Stage
+      - name: Unit Tests
+        run: yarn test:unit
+
+      # 4. Integration Tests Stage
+      - name: Integration Tests
+        run: yarn test:integration
+        
+      # 5. Security Scan Stage
+      - name: Security Audit
+        run: yarn audit --groups dependencies
+        
+      # 6. Build Stage
+      - name: Build
+        run: yarn build
+
+      # 7. AI Eval Harness (Faithfulness & Citation Accuracy)
+      # TR-INF-4 / §15 Quality Gate Enforcement
+      # Fails CI if Citation Accuracy drops below 0.95 or Faithfulness regresses.
+      - name: Run AI Evaluation Harness
+        run: yarn eval
+        env:
+          NODE_ENV: test
