@@ -45,6 +45,9 @@ const hybridSearchTool = tool(
   }
 );
 
+import { ChatOpenAI } from '@langchain/openai';
+import { RESEARCH_AGENT_SYSTEM_PROMPT, researchPromptTemplate } from '../../prompts/src/research';
+
 export const researchAgent: BaseAgent = {
   name: 'Research',
   input_schema: z.object({
@@ -77,13 +80,31 @@ export const researchAgent: BaseAgent = {
       return { findings: [] };
     }
 
-    // 2. Synthesize findings (mocked LLM generation based on chunks)
-    const findings = searchResult.map((res: any) => ({
-      claim: `Synthesized claim from ${res.content}`,
-      source_chunk_id: res.id,
-      confidence: res.score
-    }));
+    // 2. Synthesize findings (Real LLM generation based on chunks)
+    const llm = new ChatOpenAI({
+      modelName: 'gpt-4o-mini', // or configured model
+      temperature: 0.1
+    });
 
-    return { findings };
+    const structuredLlm = llm.withStructuredOutput(
+      z.object({
+        findings: z.array(z.object({
+          claim: z.string(),
+          source_chunk_id: z.string(),
+          confidence: z.number()
+        }))
+      }),
+      { name: 'synthesize_findings' }
+    );
+
+    const prompt = await researchPromptTemplate.format({
+      system_prompt: RESEARCH_AGENT_SYSTEM_PROMPT,
+      query: input.query,
+      context: JSON.stringify(searchResult, null, 2)
+    });
+
+    const result = await structuredLlm.invoke(prompt);
+    
+    return result;
   }
 };
