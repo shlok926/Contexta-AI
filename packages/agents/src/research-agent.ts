@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { BaseAgent } from './base-agent';
+import { ChatOpenAI } from '@langchain/openai';
+import { RESEARCH_AGENT_SYSTEM_PROMPT, researchPromptTemplate } from '../../prompts/src/research';
 import { tool } from '@langchain/core/tools';
 import { THRESHOLDS } from './config/thresholds';
 
@@ -44,9 +46,6 @@ const hybridSearchTool = tool(
     }),
   }
 );
-
-import { ChatOpenAI } from '@langchain/openai';
-import { RESEARCH_AGENT_SYSTEM_PROMPT, researchPromptTemplate } from '../../prompts/src/research';
 
 export const researchAgent: BaseAgent = {
   name: 'Research',

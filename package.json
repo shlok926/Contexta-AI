@@ -16,6 +16,9 @@
         "lint:fix": "yarn run turbo:command lint:fix",
         "format": "yarn run turbo:command format",
         "format:check": "yarn run turbo:command format:check",
+        "typecheck": "yarn run turbo:command typecheck",
+        "test:unit": "yarn run turbo:command test",
+        "test:integration": "yarn run turbo:command test:integration",
         "eval": "ts-node tests/eval/run_eval.ts",
         "eval:redteam": "ts-node tests/eval/run_red_team.ts"
     },

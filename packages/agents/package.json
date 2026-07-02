@@ -4,7 +4,8 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@langchain/core": "^0.2.0",
