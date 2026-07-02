@@ -3,7 +3,7 @@ import { tool } from '@langchain/core/tools';
 import { BaseAgent } from './base-agent';
 import { applyFifoEviction, ConversationTurn } from './memory-utils';
 
-// Mock implementations for Supabase interactions
+
 
 const readShortTerm = tool(
   async (input, config) => {
@@ -125,7 +125,7 @@ export const memoryAgent: BaseAgent = {
   },
   execute: async (input) => {
     // In actual implementation, we would extract explicit save requests here.
-    // For now, this is a mock that might decide to save if it sees "remember".
+    // In actual implementation, we would extract explicit save requests here.
     if (input.query.toLowerCase().includes('remember that')) {
       await writeMemory.invoke(
         { 

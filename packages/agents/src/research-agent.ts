@@ -19,16 +19,21 @@ const hybridSearchTool = tool(
       throw new Error(`Unauthorized: Tool execution denied for workspace ${input.workspace_id}. Layer 1 RBAC rejected.`);
     }
 
-    // Mock retrieval logic (in real world, hits Supabase with RLS)
-    // Here we simulate returning empty if query is unknown or returning mock chunks
-    if (input.query.includes('fail')) {
-      return JSON.stringify([]);
-    }
+    // 1. Initialize RLS-scoped retriever
+    const { makeSupabaseRetriever } = await import('../../retrieval/src/index.js');
+    const retriever = await makeSupabaseRetriever({ k: 5 } as any, authContext);
+    
+    // 2. Perform the retrieval
+    const documents = await retriever.invoke(input.query);
 
-    return JSON.stringify([
-      { id: 'chunk-123', content: 'Enterprise RAG requires strict RBAC.', score: 0.9 },
-      { id: 'chunk-456', content: 'The research agent synthesizes findings.', score: 0.85 }
-    ]);
+    // 3. Map LangChain Documents to expected output format
+    const chunks = documents.map(doc => ({
+      id: doc.metadata?.id || 'unknown-id',
+      content: doc.pageContent,
+      score: doc.metadata?.score || 1.0
+    }));
+
+    return JSON.stringify(chunks);
   },
   {
     name: 'hybrid_search',
