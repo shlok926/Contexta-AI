@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { BaseAgent } from './base-agent';
 import { THRESHOLDS } from './config/thresholds';
+import { ChatOpenAI } from '@langchain/openai';
+import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation';
 
 export const citationAgent: BaseAgent = {
   name: 'Citation',
@@ -8,6 +10,7 @@ export const citationAgent: BaseAgent = {
     research_findings: z.array(z.object({
       claim: z.string(),
       source_chunk_id: z.string(),
+      chunk_content: z.string(),
       confidence: z.number()
     }))
   }),
@@ -28,28 +31,48 @@ export const citationAgent: BaseAgent = {
   execute: async (input) => {
     const findings = input.research_findings || [];
     
-    // In reality, this would prompt an LLM to cross-check the claim against the source chunk text.
-    // We simulate the verification by checking the confidence from research findings against the gate.
-    
-    const verified_claims = findings.map((finding: any) => {
-      // Simulate verification score
-      const match_confidence = finding.confidence;
-      const verified = match_confidence >= THRESHOLDS.CITATION_CONFIDENCE_GATE;
-      
-      return {
-        claim: finding.claim,
-        verified,
-        source_chunk_id: finding.source_chunk_id,
-        match_confidence
-      };
+    if (findings.length === 0) {
+      return { verified_claims: [], confidence_score: 0 };
+    }
+
+    const llm = new ChatOpenAI({
+      modelName: 'gpt-4o-mini',
+      temperature: 0.0 // Strict evaluation
+    });
+
+    const structuredLlm = llm.withStructuredOutput(
+      z.object({
+        verified_claims: z.array(z.object({
+          claim: z.string(),
+          verified: z.boolean(),
+          source_chunk_id: z.string(),
+          match_confidence: z.number()
+        }))
+      }),
+      { name: 'verify_claims' }
+    );
+
+    const prompt = await citationPromptTemplate.format({
+      system_prompt: CITATION_AGENT_SYSTEM_PROMPT,
+      findings: JSON.stringify(findings, null, 2)
+    });
+
+    const result = await structuredLlm.invoke(prompt);
+
+    // Apply strict threshold gate (Layer 2 evaluation filtering)
+    const verified_claims = result.verified_claims.map((claim: any) => {
+      if (claim.match_confidence < THRESHOLDS.CITATION_CONFIDENCE_GATE) {
+        claim.verified = false;
+      }
+      return claim;
     });
 
     // Exclude unverified claims from final output
-    const strictlyVerified = verified_claims.filter(c => c.verified);
+    const strictlyVerified = verified_claims.filter((c: any) => c.verified);
 
     // Aggregate confidence (average of verified claims, or 0 if none)
     const confidence_score = strictlyVerified.length > 0 
-      ? strictlyVerified.reduce((acc, curr) => acc + curr.match_confidence, 0) / strictlyVerified.length 
+      ? strictlyVerified.reduce((acc: number, curr: any) => acc + curr.match_confidence, 0) / strictlyVerified.length 
       : 0;
 
     return { 

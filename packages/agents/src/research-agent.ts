@@ -59,6 +59,7 @@ export const researchAgent: BaseAgent = {
     findings: z.array(z.object({
       claim: z.string(),
       source_chunk_id: z.string(),
+      chunk_content: z.string(),
       confidence: z.number()
     }))
   }),
@@ -91,6 +92,7 @@ export const researchAgent: BaseAgent = {
         findings: z.array(z.object({
           claim: z.string(),
           source_chunk_id: z.string(),
+          chunk_content: z.string(),
           confidence: z.number()
         }))
       }),
