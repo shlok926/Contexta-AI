@@ -1,7 +1,5 @@
 import { z } from 'zod';
 import { BaseAgent } from './base-agent';
-import { ChatOpenAI } from '@langchain/openai';
-import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation-agent/v1';
 import { THRESHOLDS } from './config/thresholds';
 import { ChatOpenAI } from '@langchain/openai';
 import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation-agent/v1';
