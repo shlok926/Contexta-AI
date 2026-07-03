@@ -1,8 +1,11 @@
 import { z } from 'zod';
 import { BaseAgent } from './base-agent';
+import { ChatOpenAI } from '@langchain/openai';
+import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation-agent/v1';
 import { THRESHOLDS } from './config/thresholds';
 import { ChatOpenAI } from '@langchain/openai';
 import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation-agent/v1';
+import { getChunkById } from '@contexta/retrieval';
 
 export const citationAgent: BaseAgent = {
   name: 'Citation',
@@ -10,9 +13,10 @@ export const citationAgent: BaseAgent = {
     research_findings: z.array(z.object({
       claim: z.string(),
       source_chunk_id: z.string(),
-      chunk_content: z.string(),
+      chunk_content: z.string().optional(),
       confidence: z.number()
-    }))
+    })),
+    auth_context: z.any()
   }),
   output_schema: z.object({
     verified_claims: z.array(z.object({
@@ -36,8 +40,6 @@ export const citationAgent: BaseAgent = {
       return { verified_claims: [], confidence_score: 0 };
     }
 
-    const { getChunkById } = await import('../../retrieval/src/index.js');
-    
     const claimsWithContext = await Promise.all(
       findings.map(async (finding: any) => {
         const chunk_content = await getChunkById(finding.source_chunk_id, authContext);

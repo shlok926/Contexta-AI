@@ -81,7 +81,7 @@ export const researchAgent: BaseAgent = {
 
     // 2. Synthesize findings (Real LLM generation based on chunks)
     const llm = new ChatOpenAI({
-      modelName: 'gpt-4o-mini', // or configured model
+      modelName: THRESHOLDS.DEFAULT_MODEL_NAME,
       temperature: 0.1
     });
 
