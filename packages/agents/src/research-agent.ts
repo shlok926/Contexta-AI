@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseAgent } from './base-agent';
 import { ChatOpenAI } from '@langchain/openai';
-import { RESEARCH_AGENT_SYSTEM_PROMPT, researchPromptTemplate } from '../../prompts/src/research';
+import { RESEARCH_AGENT_SYSTEM_PROMPT, researchPromptTemplate } from '../../prompts/src/research-agent/v1';
 import { tool } from '@langchain/core/tools';
 import { THRESHOLDS } from './config/thresholds';
 
@@ -58,7 +58,6 @@ export const researchAgent: BaseAgent = {
     findings: z.array(z.object({
       claim: z.string(),
       source_chunk_id: z.string(),
-      chunk_content: z.string(),
       confidence: z.number()
     }))
   }),
@@ -91,7 +90,6 @@ export const researchAgent: BaseAgent = {
         findings: z.array(z.object({
           claim: z.string(),
           source_chunk_id: z.string(),
-          chunk_content: z.string(),
           confidence: z.number()
         }))
       }),

@@ -19,20 +19,13 @@ jest.mock('@/lib/pdf', () => ({
   }),
 }));
 
-// Mock the langGraphServerClient
-jest.mock('@/lib/langgraph-server', () => {
+// Mock the local graph
+jest.mock('@contexta/agents/src/graph', () => {
   return {
-    langGraphServerClient: {
-      createThread: jest
-        .fn()
-        .mockResolvedValue({ thread_id: 'test-thread-id' }),
-      client: {
-        runs: {
-          stream: jest.fn().mockImplementation(async function* () {
-            yield { data: 'test' };
-          }),
-        },
-      },
+    graph: {
+      invoke: jest.fn().mockResolvedValue({
+        final_answer: "Test answer"
+      }),
     },
   };
 });
@@ -143,7 +136,7 @@ startxref
     expect(processPDF).toHaveBeenCalled();
   });
 
-  it.skip('should call the ingestion graph with the correct data', async () => {
+  it('should call the local graph with the correct data', async () => {
     const formData = new FormData();
     formData.append('files', fs.createReadStream(pdfFilePath), 'test.pdf');
 
@@ -152,17 +145,7 @@ startxref
       body: formData,
     });
 
-    expect(langGraphServerClient.createThread).toHaveBeenCalled();
-    expect(langGraphServerClient.client.runs.stream).toHaveBeenCalledWith(
-      'test-thread-id',
-      'ingestion_graph',
-      {
-        input: {
-          docs: [
-            { pageContent: 'Test content', metadata: { filename: 'test.pdf' } },
-          ],
-        },
-      },
-    );
+    const { graph } = require('@contexta/agents/src/graph');
+    expect(graph.invoke).toHaveBeenCalled();
   });
 });

@@ -60,3 +60,33 @@ export async function makeRetriever(
       );
   }
 }
+
+export async function getChunkById(chunkId: string, authContext: any): Promise<string | null> {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    throw new Error('SUPABASE_URL or SUPABASE_ANON_KEY environment variables are not defined');
+  }
+  
+  if (!authContext?.token) {
+    throw new Error('Unauthorized: Missing auth context token for RLS retrieval');
+  }
+
+  const supabaseClient = createClient(
+    process.env.SUPABASE_URL ?? '',
+    process.env.SUPABASE_ANON_KEY ?? '',
+    {
+      global: { headers: { Authorization: `Bearer ${authContext.token}` } }
+    }
+  );
+
+  const { data, error } = await supabaseClient
+    .from('documents')
+    .select('content')
+    .eq('id', chunkId)
+    .single();
+    
+  if (error || !data) {
+    return null;
+  }
+  
+  return data.content;
+}

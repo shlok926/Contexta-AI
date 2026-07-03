@@ -15,7 +15,6 @@ Context: <JSON array of retrieved chunks with 'id' and 'content'>
 Output your findings STRICTLY as a JSON array where each object has the following keys:
 - "claim": A clear, synthesized statement answering a part of the query.
 - "source_chunk_id": The exact ID of the chunk that supports this claim.
-- "chunk_content": The exact text of the chunk that supports this claim.
 - "confidence": A float between 0.0 and 1.0 representing the strength of the evidence.
 
 Example output:
@@ -24,7 +23,6 @@ Example output:
     {
       "claim": "The enterprise platform uses role-based access control.",
       "source_chunk_id": "chunk-12345",
-      "chunk_content": "The enterprise platform secures resources using role-based access control.",
       "confidence": 0.95
     }
   ]

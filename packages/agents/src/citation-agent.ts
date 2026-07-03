@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { BaseAgent } from './base-agent';
 import { THRESHOLDS } from './config/thresholds';
 import { ChatOpenAI } from '@langchain/openai';
-import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation';
+import { CITATION_AGENT_SYSTEM_PROMPT, citationPromptTemplate } from '../../prompts/src/citation-agent/v1';
 
 export const citationAgent: BaseAgent = {
   name: 'Citation',
@@ -30,14 +30,28 @@ export const citationAgent: BaseAgent = {
   },
   execute: async (input) => {
     const findings = input.research_findings || [];
+    const authContext = input.auth_context;
     
     if (findings.length === 0) {
       return { verified_claims: [], confidence_score: 0 };
     }
 
+    const { getChunkById } = await import('../../retrieval/src/index.js');
+    
+    const claimsWithContext = await Promise.all(
+      findings.map(async (finding: any) => {
+        const chunk_content = await getChunkById(finding.source_chunk_id, authContext);
+        return {
+          claim: finding.claim,
+          source_chunk_id: finding.source_chunk_id,
+          chunk_content: chunk_content || "ERROR: Source chunk not found."
+        };
+      })
+    );
+
     const llm = new ChatOpenAI({
-      modelName: 'gpt-4o-mini',
-      temperature: 0.0 // Strict evaluation
+      modelName: process.env.MODEL_NAME || 'gpt-4o-mini',
+      temperature: 0.0
     });
 
     const structuredLlm = llm.withStructuredOutput(
@@ -54,12 +68,11 @@ export const citationAgent: BaseAgent = {
 
     const prompt = await citationPromptTemplate.format({
       system_prompt: CITATION_AGENT_SYSTEM_PROMPT,
-      findings: JSON.stringify(findings, null, 2)
+      findings: JSON.stringify(claimsWithContext, null, 2)
     });
 
     const result = await structuredLlm.invoke(prompt);
 
-    // Apply strict threshold gate (Layer 2 evaluation filtering)
     const verified_claims = result.verified_claims.map((claim: any) => {
       if (claim.match_confidence < THRESHOLDS.CITATION_CONFIDENCE_GATE) {
         claim.verified = false;

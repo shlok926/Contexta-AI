@@ -5,7 +5,7 @@ export const AgentStateAnnotation = Annotation.Root({
   query: Annotation<string>(),
   workspace_scope: Annotation<string>(), // workspace_id
   auth_context: Annotation<{ user_id: string; roles: string[] }>(),
-  research_findings: Annotation<Array<{ claim: string; source_chunk_id: string; chunk_content: string; confidence: number }>>({
+  research_findings: Annotation<Array<{ claim: string; source_chunk_id: string; confidence: number }>>({
     reducer: (curr, next) => next,
     default: () => [],
   }),
