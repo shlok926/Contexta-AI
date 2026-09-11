@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
-    "@langchain/community": "^0.3.31",
+    "@langchain/community": "^1.1.29",
     "@langchain/core": "^0.3.40",
     "@langchain/langgraph-sdk": "^0.0.42",
     "@radix-ui/react-accordion": "^1.2.2",
