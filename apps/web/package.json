@@ -14,7 +14,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@langchain/community": "^1.1.29",
-    "@langchain/core": "^1.2.11",
+    "@langchain/core": "^0.3.80",
     "@langchain/langgraph-sdk": "^0.0.42",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
@@ -50,7 +50,7 @@
     "cmdk": "1.0.4",
     "date-fns": "^3.0.0",
     "embla-carousel-react": "8.5.1",
-    "formidable": "^3.5.2",
+    "formidable": "^3.5.4",
     "geist": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
