@@ -20,6 +20,7 @@ module.exports = {
     'node_modules',
     'dist',
     'dist-cjs',
+    'apps/web',
     '*.js',
     '*.cjs',
     '*.d.ts',

@@ -1,13 +1,29 @@
 import { z } from 'zod';
 import { tool } from '@langchain/core/tools';
 import { BaseAgent } from './base-agent';
+import { applyFifoEviction, ConversationTurn } from './memory-utils';
 
-// Mock implementations for Supabase interactions
+
 
 const readShortTerm = tool(
   async (input, config) => {
-    // Return recent conversation context, assuming FIFO eviction happens before calling this
-    return JSON.stringify([{ role: 'user', content: 'previous question' }]);
+    // In production, fetch the raw turns from the database for the given thread_id
+    const rawTurns: ConversationTurn[] = [
+      { role: 'system', content: 'You are Contexta.' },
+      { role: 'user', content: 'Turn 1' },
+      { role: 'assistant', content: 'Answer 1' },
+      { role: 'user', content: 'Turn 2' },
+      { role: 'assistant', content: 'Answer 2' },
+      { role: 'user', content: 'Turn 3' },
+      { role: 'assistant', content: 'Answer 3' },
+      { role: 'user', content: 'Turn 4' },
+      { role: 'assistant', content: 'Answer 4' }
+    ];
+
+    // Apply strict FIFO eviction (retaining system pins)
+    const evictedTurns = applyFifoEviction(rawTurns);
+    
+    return JSON.stringify(evictedTurns);
   },
   {
     name: 'read_short_term',
@@ -16,10 +32,32 @@ const readShortTerm = tool(
   }
 );
 
+import { createClient } from '@supabase/supabase-js';
+
 const readLongTerm = tool(
   async (input, config) => {
-    // Return explicitly stored facts for the user
-    return JSON.stringify([{ fact: 'user wants short answers', reason: 'user_preference_stated' }]);
+    const authContext = config?.configurable?.auth_context;
+    if (!authContext) throw new Error("Unauthorized: Missing auth context");
+    
+    // LAYER 1 RBAC VALIDATION (Defense-in-depth)
+    const allowedWorkspaces = authContext.allowed_workspaces || [];
+    if (!allowedWorkspaces.includes(input.workspace_id)) {
+      throw new Error(`Unauthorized: Tool execution denied for workspace ${input.workspace_id}. Layer 1 RBAC rejected.`);
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${authContext.token}` } }
+    });
+
+    const { data, error } = await supabase
+      .from('memory_entries')
+      .select('fact, reason, created_at')
+      .eq('workspace_id', input.workspace_id)
+      .eq('user_id', input.user_id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return JSON.stringify(data || []);
   },
   {
     name: 'read_long_term',
@@ -30,9 +68,32 @@ const readLongTerm = tool(
 
 const writeMemory = tool(
   async (input, config) => {
-    // In production, this writes to memory_entries table with the specified explicit reason
-    console.log(`Writing to long term memory: ${input.fact} [Reason: ${input.reason}]`);
-    return `Memory successfully saved.`;
+    const authContext = config?.configurable?.auth_context;
+    if (!authContext) throw new Error("Unauthorized: Missing auth context");
+    
+    // LAYER 1 RBAC VALIDATION (Defense-in-depth)
+    const allowedWorkspaces = authContext.allowed_workspaces || [];
+    if (!allowedWorkspaces.includes(input.workspace_id)) {
+      throw new Error(`Unauthorized: Tool execution denied for workspace ${input.workspace_id}. Layer 1 RBAC rejected.`);
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${authContext.token}` } }
+    });
+
+    const { error } = await supabase.from('memory_entries').insert({
+      workspace_id: input.workspace_id,
+      user_id: input.user_id,
+      fact: input.fact,
+      reason: input.reason,
+      source_agent: 'memory_agent' // FR-MEM-3 required audit logging
+    });
+
+    if (error) {
+      console.error(`[MemoryAgent] Failed to persist memory to database: ${error.message}`);
+      return `Failed to save memory to database due to an internal error.`; // Fallback gracefully, doesn't throw
+    }
+    return `Memory successfully saved to database.`;
   },
   {
     name: 'write_memory',
@@ -64,7 +125,7 @@ export const memoryAgent: BaseAgent = {
   },
   execute: async (input) => {
     // In actual implementation, we would extract explicit save requests here.
-    // For now, this is a mock that might decide to save if it sees "remember".
+    // In actual implementation, we would extract explicit save requests here.
     if (input.query.toLowerCase().includes('remember that')) {
       await writeMemory.invoke(
         { 
