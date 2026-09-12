@@ -20,7 +20,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile || yarn install
+        run: yarn install --ignore-engines
 
       # 1. Linting Stage
       - name: Lint
