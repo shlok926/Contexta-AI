@@ -7,7 +7,7 @@ import path from 'path';
 // chunk-matching for Citation Accuracy.
 
 async function runEvals() {
-  const goldenPath = path.join(__dirname, 'golden_sets', 'v1_golden.json');
+  const goldenPath = path.join(process.cwd(), 'tests', 'eval', 'golden_sets', 'v1_golden.json');
   const goldenData = JSON.parse(fs.readFileSync(goldenPath, 'utf8'));
 
   console.log(`Starting Evaluation Harness for ${goldenData.length} golden queries...`);
@@ -49,4 +49,7 @@ async function runEvals() {
   console.log('Eval harness passed. All quality gates met.');
 }
 
-runEvals().catch(console.error);
+runEvals().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

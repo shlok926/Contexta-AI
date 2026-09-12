@@ -13,19 +13,14 @@ export const createServerClient = () => {
     return clientInstance;
   }
 
-  if (!process.env.NEXT_PUBLIC_LANGGRAPH_API_URL) {
-    throw new Error('NEXT_PUBLIC_LANGGRAPH_API_URL is not set');
-  }
-
-  if (!process.env.LANGCHAIN_API_KEY) {
-    throw new Error('LANGCHAIN_API_KEY is not set');
-  }
+  const apiUrl = process.env.NEXT_PUBLIC_LANGGRAPH_API_URL || 'http://localhost:2024';
+  const apiKey = process.env.LANGCHAIN_API_KEY || '';
 
   const client = new Client({
-    apiUrl: process.env.NEXT_PUBLIC_LANGGRAPH_API_URL,
+    apiUrl,
     defaultHeaders: {
       'Content-Type': 'application/json',
-      'X-Api-Key': process.env.LANGCHAIN_API_KEY,
+      ...(apiKey ? { 'X-Api-Key': apiKey } : {}),
     },
   });
 
