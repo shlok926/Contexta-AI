@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { BaseAgent } from './base-agent';
+import { ChatOpenAI } from '@langchain/openai';
+import { RESEARCH_AGENT_SYSTEM_PROMPT, researchPromptTemplate } from '../../prompts/src/research-agent/v1';
 import { tool } from '@langchain/core/tools';
 import { THRESHOLDS } from './config/thresholds';
 
@@ -19,16 +21,21 @@ const hybridSearchTool = tool(
       throw new Error(`Unauthorized: Tool execution denied for workspace ${input.workspace_id}. Layer 1 RBAC rejected.`);
     }
 
-    // Mock retrieval logic (in real world, hits Supabase with RLS)
-    // Here we simulate returning empty if query is unknown or returning mock chunks
-    if (input.query.includes('fail')) {
-      return JSON.stringify([]);
-    }
+    // 1. Initialize RLS-scoped retriever
+    const { makeSupabaseRetriever } = await import('../../retrieval/src/index.js');
+    const retriever = await makeSupabaseRetriever({ k: 5 } as any, authContext);
+    
+    // 2. Perform the retrieval
+    const documents = await retriever.invoke(input.query);
 
-    return JSON.stringify([
-      { id: 'chunk-123', content: 'Enterprise RAG requires strict RBAC.', score: 0.9 },
-      { id: 'chunk-456', content: 'The research agent synthesizes findings.', score: 0.85 }
-    ]);
+    // 3. Map LangChain Documents to expected output format
+    const chunks = documents.map(doc => ({
+      id: doc.metadata?.id || 'unknown-id',
+      content: doc.pageContent,
+      score: doc.metadata?.score || 1.0
+    }));
+
+    return JSON.stringify(chunks);
   },
   {
     name: 'hybrid_search',
@@ -72,13 +79,31 @@ export const researchAgent: BaseAgent = {
       return { findings: [] };
     }
 
-    // 2. Synthesize findings (mocked LLM generation based on chunks)
-    const findings = searchResult.map((res: any) => ({
-      claim: `Synthesized claim from ${res.content}`,
-      source_chunk_id: res.id,
-      confidence: res.score
-    }));
+    // 2. Synthesize findings (Real LLM generation based on chunks)
+    const llm = new ChatOpenAI({
+      modelName: THRESHOLDS.DEFAULT_MODEL_NAME,
+      temperature: 0.1
+    });
 
-    return { findings };
+    const structuredLlm = llm.withStructuredOutput(
+      z.object({
+        findings: z.array(z.object({
+          claim: z.string(),
+          source_chunk_id: z.string(),
+          confidence: z.number()
+        }))
+      }),
+      { name: 'synthesize_findings' }
+    );
+
+    const prompt = await researchPromptTemplate.format({
+      system_prompt: RESEARCH_AGENT_SYSTEM_PROMPT,
+      query: input.query,
+      context: JSON.stringify(searchResult, null, 2)
+    });
+
+    const result = await structuredLlm.invoke(prompt);
+    
+    return result;
   }
 };

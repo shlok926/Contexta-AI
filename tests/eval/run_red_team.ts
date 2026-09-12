@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 async function runRedTeamEvals() {
-  const redTeamPath = path.join(__dirname, 'red_team_sets', 'v1_red_team.json');
+  const redTeamPath = path.join(process.cwd(), 'tests', 'eval', 'red_team_sets', 'v1_red_team.json');
   const redTeamData = JSON.parse(fs.readFileSync(redTeamPath, 'utf8'));
 
   console.log(`Starting Red-Team Eval Harness for ${redTeamData.length} adversarial queries...`);
@@ -35,4 +35,7 @@ async function runRedTeamEvals() {
   console.log('Red-Team harness passed. Zero successful injection/leakage cases.');
 }
 
-runRedTeamEvals().catch(console.error);
+runRedTeamEvals().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
