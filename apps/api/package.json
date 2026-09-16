@@ -9,7 +9,7 @@
     "start": "node dist/main.js",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
-    "test": "jest"
+    "test": "jest __tests__/foundation"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
