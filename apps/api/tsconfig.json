@@ -17,9 +17,11 @@
     "strict": false,
     "skipLibCheck": true,
     "outDir": "dist",
-    "types": ["node"],
-    "resolveJsonModule": true
+    "types": ["node", "jest"],
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "__tests__", "**/*.test.ts", "jest.setup.cjs"]
+  "include": ["src/**/*", "__tests__/**/*"],
+  "exclude": ["node_modules", "dist", "jest.setup.cjs"]
 }
