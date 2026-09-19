@@ -109,11 +109,14 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const trimmed = authHeader.trim();
-    if (!/^Bearer(\s+.*)?$/i.test(trimmed)) {
+    const scheme = trimmed.slice(0, 6).toLowerCase();
+    const charAfter = trimmed.charAt(6);
+
+    if (scheme !== 'bearer' || (charAfter !== '' && charAfter !== ' ' && charAfter !== '\t')) {
       throw new UnauthorizedException('Authentication failed: Authorization header must use Bearer scheme');
     }
 
-    const token = trimmed.replace(/^Bearer\s*/i, '').trim();
+    const token = trimmed.slice(6).trim();
     if (!token) {
       throw new UnauthorizedException('Authentication failed: Bearer token must not be empty');
     }
