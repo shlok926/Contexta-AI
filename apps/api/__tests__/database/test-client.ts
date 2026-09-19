@@ -79,9 +79,12 @@ export class PostgresTestClient {
       throw new Error(`Admin query failed (code ${res.exitCode}): ${res.stderr || res.stdout}`);
     }
     try {
-      const lines = res.stdout.split('\n').map(l => l.trim()).filter(l => l.startsWith('[') || l.startsWith('{'));
-      const jsonStr = lines[lines.length - 1] || '[]';
-      return JSON.parse(jsonStr);
+      const match = res.stdout.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      }
+      return JSON.parse(res.stdout);
     } catch {
       return [] as T[];
     }
@@ -104,9 +107,12 @@ export class PostgresTestClient {
       throw new Error(`User query failed (code ${res.exitCode}): ${res.stderr || res.stdout}`);
     }
     try {
-      const lines = res.stdout.split('\n').map(l => l.trim()).filter(l => l.startsWith('[') || l.startsWith('{'));
-      const jsonStr = lines[lines.length - 1] || '[]';
-      return JSON.parse(jsonStr);
+      const match = res.stdout.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      }
+      return JSON.parse(res.stdout);
     } catch {
       return [] as T[];
     }
