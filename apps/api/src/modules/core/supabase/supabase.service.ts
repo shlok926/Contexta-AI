@@ -6,6 +6,11 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getVerifiedToken } from './symbols.js';
 import type { AuthConfig } from '../config/auth-config.schema.js';
 
+// Ensure WebSocket constructor exists in headless Node.js environments
+if (typeof (globalThis as any).WebSocket === 'undefined') {
+  (globalThis as any).WebSocket = class MockWebSocket {};
+}
+
 /**
  * Request-scoped Supabase client provider (Scope.REQUEST).
  *
