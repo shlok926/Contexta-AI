@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
-    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js __tests__/foundation __tests__/config __tests__/context __tests__/auth __tests__/supabase __tests__/rbac/rbac-authorization.test.ts __tests__/rbac/rbac-capability.test.ts __tests__/errors __tests__/workspace --runInBand"
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js __tests__/foundation __tests__/config __tests__/context __tests__/auth __tests__/supabase __tests__/rbac/rbac-authorization.test.ts __tests__/rbac/rbac-capability.test.ts __tests__/errors __tests__/workspace __tests__/agents --runInBand"
+
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

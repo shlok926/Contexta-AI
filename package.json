@@ -11,15 +11,14 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "yarn run turbo:command build",
-        "turbo:command": "yarn turbo",
-        "lint": "yarn run turbo:command lint",
-        "lint:fix": "yarn run turbo:command lint:fix",
-        "format": "yarn run turbo:command format",
-        "format:check": "yarn run turbo:command format:check",
-        "typecheck": "yarn run turbo:command typecheck",
-        "test:unit": "yarn run turbo:command test",
-        "test:integration": "yarn run turbo:command test:integration",
+        "build": "turbo build",
+        "lint": "turbo lint",
+        "lint:fix": "turbo lint:fix",
+        "format": "turbo format",
+        "format:check": "turbo format:check",
+        "typecheck": "turbo typecheck",
+        "test:unit": "turbo test",
+        "test:integration": "turbo test:integration",
         "eval": "tsx tests/eval/run_eval.ts",
         "eval:redteam": "tsx tests/eval/run_red_team.ts"
     },
