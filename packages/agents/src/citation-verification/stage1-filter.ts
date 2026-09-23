@@ -45,8 +45,9 @@ function extractQuantitativeAssertions(text: string): QuantitativeAssertion[] {
   }
 
   // Pattern for subject + verb/prep + [currency] number [multiplier/unit]
+  // Using single-space delimiters since text is pre-normalized via normalizeText()
   const quantRegex =
-    /(?:([a-z0-9\-_]{2,25}(?:\s+[a-z0-9\-_]{2,25}){0,3})\s+(?:is|was|are|were|of|for|in|at|to|reached|amounted to|equals?|limit is|expires in|expired in))\s+([\$₹€£]?\s*\d+(?:[\.,]\d+)?\s*(?:crore|lakh|million|billion|thousand|%|percent|years?|days?|months?|hours?|minutes?|users?|gb|tb|mb|kb)?)/gi;
+    /(?:([a-z0-9\-_]{2,25}(?: [a-z0-9\-_]{2,25}){0,3}) (?:is|was|are|were|of|for|in|at|to|reached|amounted to|equals?|limit is|expires in|expired in)) ([\$₹€£]? ?\d+(?:[\.,]\d+)? ?(?:crore|lakh|million|billion|thousand|%|percent|years?|days?|months?|hours?|minutes?|users?|gb|tb|mb|kb)?)/gi;
 
   let match: RegExpExecArray | null;
   while ((match = quantRegex.exec(normalized)) !== null) {
